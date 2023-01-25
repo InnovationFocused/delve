@@ -199,14 +199,14 @@ def handle_inputs(config: dict, handler_map: dict):
                     log.exception("An unhandled exception occurred.")
                     sys.exit(0)
                 log.debug(f"Tags: {tags}")
-                # e = Event(
-                #     raw=event,
-                #     text=event,
-                #     index=handler.conf.get("index"),
-                #     host=handler.conf.get("host"),
-                #     source=handler.conf.get("source"),
-                #     sourcetype=handler.conf.get("sourcetype"),
-                #     extracted_fields=extracted_fields,
-                #     tags=[],
-                # )
-                # commit()
+                e = Event(
+                    raw=event,
+                    text=event,
+                    index=handler.conf.get("index"),
+                    host=handler.conf.get("host"),
+                    source=handler.conf.get("source"),
+                    sourcetype=handler.conf.get("sourcetype"),
+                    extracted_fields=extracted_fields,
+                    tags=[],
+                )
+                commit()
