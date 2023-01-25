@@ -50,61 +50,60 @@ def should_include(result, _filters):
             break
         _cls = type(_value)
         # import streamlit as st; st.write(f"{value}: {_value}")
-        match op:
-            case "==":
-                if _cls(value) == _value:
-                    pass
-                else:
-                    include = False
-                    break
-            case "~=":
-                if _value.startswith(_cls(value)):
-                    pass
-                else:
-                    include = False
-                    break
-            case "=~":
-                if _value.endswith(_cls(value)):
-                    pass
-                else:
-                    include = False
-                    break
-            case "~=~":
-                if _cls(value) in _value:
-                    pass
-                else:
-                    include = False
-                    break
-            case "!=":
-                if _cls(value) != _value:
-                    pass
-                else:
-                    include = False
-                    break
-            case ">":
-                if _value > _cls(value):
-                    pass
-                else:
-                    include = False
-                    break
-            case ">=":
-                if _value >= _cls(value):
-                    pass
-                else:
-                    include = False
-                    break
-            case "<":
-                if _value < _cls(value):
-                    pass
-                else:
-                    include = False
-                    break
-            case "<=":
-                if _value <= _cls(value):
-                    pass
-                else:
-                    include = False
-                    break
+        if op == "==":
+            if _cls(value) == _value:
+                pass
+            else:
+                include = False
+                break
+        elif op == "~=":
+            if _value.startswith(_cls(value)):
+                pass
+            else:
+                include = False
+                break
+        elif op == "=~":
+            if _value.endswith(_cls(value)):
+                pass
+            else:
+                include = False
+                break
+        elif op == "~=~":
+            if _cls(value) in _value:
+                pass
+            else:
+                include = False
+                break
+        elif op == "!=":
+            if _cls(value) != _value:
+                pass
+            else:
+                include = False
+                break
+        elif op == ">":
+            if _value > _cls(value):
+                pass
+            else:
+                include = False
+                break
+        elif op == ">=":
+            if _value >= _cls(value):
+                pass
+            else:
+                include = False
+                break
+        elif op == "<":
+            if _value < _cls(value):
+                pass
+            else:
+                include = False
+                break
+        elif op == "<=":
+            if _value <= _cls(value):
+                pass
+            else:
+                include = False
+                break
     return include
 
 parser = argparse.ArgumentParser()

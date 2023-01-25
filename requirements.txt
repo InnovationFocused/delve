@@ -4,4 +4,3 @@ streamlit
 typer
 pony
 toml
-apscheduler
