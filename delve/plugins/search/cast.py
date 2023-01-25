@@ -15,11 +15,10 @@ def cast(argv, results):
     args = parser.parse_args(argv)
     log.debug(f"Found args: {args}")
     _type = None
-    match args.type:
-        case "int":
-            _type = int
-        case "str":
-            _type = str
+    if _type == "int":
+        _type = int
+    elif _type == "str":
+        _type = str
     log.debug(f"Found _type: {_type}")
     log.debug(f"Found fieldname: {args.field}")
     for result in results:
