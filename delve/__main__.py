@@ -66,6 +66,7 @@ def install(
     config_directory.joinpath("plugins.toml").write_text(toml.dumps(defaults["default_plugins_config"]))
     config_directory.joinpath("database.toml").write_text(toml.dumps(defaults["default_database_config"]))
     config_directory.joinpath("logging.toml").write_text(toml.dumps(defaults["default_logging_config"]))
+    config_directory.joinpath("server.toml").write_text(toml.dumps(defaults["default_server_config"]))
 
     log_directory = installation_directory.joinpath("logs")
     log_directory.mkdir(parents=True, exist_ok=True)
@@ -135,6 +136,7 @@ def serve(
     installation_directory: Path=default_installation_directory,
 ):
     installation_directory = installation_directory.resolve()
+    server_config =  load_config("server", installation_directory)
     from subprocess import run
     # apps_directory = installation_directory.joinpath("apps")
     # sys.path.insert(0, str(apps_directory))
@@ -146,20 +148,29 @@ def serve(
     log = logging.getLogger(__name__)
 
     # os.environ["DELVE_INSTALLATION_DIRECTORY"] = str(installation_directory.resolve())
-
-    run(
+    command = [
+        "streamlit",
+        "run",
+        str(Path(__file__).parent.joinpath("shim.py")),
+        "--browser.gatherUsageStats",
+        "false",
+    ]
+    for namespace, settings in server_config.items():
+        for key, value in settings.items():
+            if value:
+                log.debug(f"Found server setting {namespace}.{key}: {value}")
+                command.append(f"--{namespace}.{key}")
+                command.append(str(value))
+    command.extend(
         [
-            "streamlit",
-            "run",
-            Path(__file__).parent.joinpath("shim.py"),
-            "--browser.gatherUsageStats",
-            "false",
-            "--foo",
             "--",
             "--installation-directory",
-            str(installation_directory.resolve())
+            str(installation_directory.resolve()),
         ]
     )
+    import shlex
+    log.debug(f"command built: {shlex.join(command)}")
+    run(command)
 
 
 if __name__ == "__main__":

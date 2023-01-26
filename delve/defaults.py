@@ -5,6 +5,55 @@ default_installation_directory = Path("~/.delve").expanduser()
 
 def get_defaults(installation_directory: Path):
     return {
+        "default_server_config": {
+            'global': {
+                'disableWatchdogWarning': False,
+                'showWarningOnDirectExecution': True,
+                'dataFrameSerialization': 'arrow'},
+                'logger': {
+                    'level': 'info',
+                    'messageFormat': '%(asctime)s %(message)s'
+                },
+                'client': {
+                    'caching': True,
+                    'displayEnabled': True,
+                    'showErrorDetails': True
+                },
+                'runner': {
+                    'magicEnabled': True,
+                    'installTracer': False,
+                    'fixMatplotlib': True,
+                    'postScriptGC': True,
+                    'fastReruns': False
+                },
+                'server': {
+                    'folderWatchBlacklist': [],
+                    'fileWatcherType': 'auto',
+                    'cookieSecret': 'lksjdfhlsiuhfiasuhliw321o38u9sduh9',
+                    'headless': False,
+                    'runOnSave': False,
+                    'port': 8501,
+                    'baseUrlPath': '',
+                    'enableCORS': True,
+                    'enableXsrfProtection': True,
+                    'maxUploadSize': 200,
+                    'maxMessageSize': 200,
+                    'enableWebsocketCompression': False
+                },
+                'browser': {
+                    'serverAddress': 'localhost',
+                    'gatherUsageStats': True,
+                    'serverPort': 8501
+                },
+                'mapbox': {
+                    'token': ''
+                },
+                'deprecation': {
+                    'showfileUploaderEncoding': True,
+                    'showPyplotGlobalUse': True
+                },
+                'theme': {}
+        },
         "default_database_config": {
             "bind": {
                 "provider": "sqlite",
