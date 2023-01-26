@@ -152,6 +152,9 @@ def serve(
             "streamlit",
             "run",
             Path(__file__).parent.joinpath("shim.py"),
+            "--browser.gatherUsageStats",
+            "false",
+            "--foo",
             "--",
             "--installation-directory",
             str(installation_directory.resolve())

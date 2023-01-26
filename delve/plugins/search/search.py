@@ -37,8 +37,15 @@ def parse_filter_expression(expression, resolve_field_name=True):
         field_name = field_expression
     return field_name, op, value
 
-def should_include(result, _filters):
+def should_include(result, _filters, regular_expressions):
     include = True
+    if regular_expressions:
+        text = lenient_getattrs(result, "text")
+        if any(regex.search(text) for regex in regular_expressions):
+            pass
+        else:
+            include = False
+
     for _filter in _filters:
         field_name, op, value = parse_filter_expression(_filter, resolve_field_name=False)
         # field_name = field_name.replace("e.", "", 1)
@@ -111,18 +118,24 @@ parser.add_argument("filters", nargs="*")
 parser.add_argument("-s", "--sort", action="append")
 parser.add_argument("-p", "--page", type=int, default=None)
 parser.add_argument("-S", "--page-size", type=int, default=50)
+parser.add_argument("-r", "--regex", action="append")
 def search(argv, results=None):
     log = logging.getLogger(__name__)
     log.debug(f"Found argv: '{argv}'")
     args = parser.parse_args(argv)
     log.debug(f"Found args: '{args}'")
+    if args.regex:
+        regular_expressions = [re.compile(regex) for regex in args.regex]
     if results is not None:
         ret = []
         for result in results:
-            if should_include(result, args.filters):
+            if should_include(result, args.filters, regular_expressions):
                 ret.append(result)
         return ret
     else:
+        print("HERE")
+        if args.regex:
+            raise ValueError("Cannot provide regex when 'search' is the first search command")
         with db_session():
             query = select(event for event in Event)
             if args.sort:
