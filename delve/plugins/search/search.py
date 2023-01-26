@@ -133,7 +133,6 @@ def search(argv, results=None):
                 ret.append(result)
         return ret
     else:
-        print("HERE")
         if args.regex:
             raise ValueError("Cannot provide regex when 'search' is the first search command")
         with db_session():

@@ -7,3 +7,5 @@ from .linechart import linechart
 from .add_field import add_field
 from .cast import cast
 from .to_epoch import to_epoch
+from .drop import drop
+from .extracted import extracted

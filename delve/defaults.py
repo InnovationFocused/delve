@@ -76,7 +76,8 @@ def get_defaults(installation_directory: Path):
                 "extract-json": "delve.plugins.search.extract_json",
                 "line-chart": "delve.plugins.search.linechart",
                 "add-field": "delve.plugins.search.add_field",
-                "foo": "foo.bar",
+                "drop": "delve.plugins.search.drop",
+                "extracted": "delve.plugins.search.extracted",
             },
             "input": {
                 "handler_map": {

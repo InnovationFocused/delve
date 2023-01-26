@@ -3,7 +3,6 @@ from pathlib import Path
 
 class FileInputHandler():
     def __init__(self, parsed_name: urlparse, conf: dict):
-        print(parsed_name)
         self.conf = conf
         self.scheme = parsed_name.scheme
         self.netloc = parsed_name.netloc
