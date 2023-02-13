@@ -55,58 +55,60 @@ def should_include(result, _filters, regular_expressions):
         if _value is None:
             include = False
             break
-        _cls = type(_value)
+        else:
+            _value = str(_value)
+        # _cls = type(_value)
         # import streamlit as st; st.write(f"{value}: {_value}")
         if op == "==":
-            if _cls(value) == _value:
+            if str(value) == _value:
                 pass
             else:
                 include = False
                 break
         elif op == "~=":
-            if _value.startswith(_cls(value)):
+            if _value.startswith(str(value)):
                 pass
             else:
                 include = False
                 break
         elif op == "=~":
-            if _value.endswith(_cls(value)):
+            if _value.endswith(str(value)):
                 pass
             else:
                 include = False
                 break
         elif op == "~=~":
-            if _cls(value) in _value:
+            if str(value) in _value:
                 pass
             else:
                 include = False
                 break
         elif op == "!=":
-            if _cls(value) != _value:
+            if str(value) != _value:
                 pass
             else:
                 include = False
                 break
         elif op == ">":
-            if _value > _cls(value):
+            if _value > str(value):
                 pass
             else:
                 include = False
                 break
         elif op == ">=":
-            if _value >= _cls(value):
+            if _value >= str(value):
                 pass
             else:
                 include = False
                 break
         elif op == "<":
-            if _value < _cls(value):
+            if _value < str(value):
                 pass
             else:
                 include = False
                 break
         elif op == "<=":
-            if _value <= _cls(value):
+            if _value <= str(value):
                 pass
             else:
                 include = False
