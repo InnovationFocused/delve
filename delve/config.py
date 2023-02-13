@@ -6,18 +6,28 @@ from string import Template
 
 import toml
 
-def recursively_expand_env_vars(data):
-    if isinstance(data, dict):
-        return {key: recursively_expand_env_vars(value) for key, value in data.items()}
-    elif isinstance(data, (list, tuple)):
-        return [recursively_expand_env_vars(item) for item in data]
-    elif isinstance(data, str):
-        return os.path.expandvars(data)
-    elif isinstance(data, int):
-        return data
-    elif isinstance(data, bool):
-        return data
-    return data
+STANDARD_INPUT_CONFIGURATION_FIELDS = (
+    "index",
+    "host",
+    "source",
+    "sourcetype",
+    "extractions",
+    "transformations",
+    "tags",
+)
+
+# def recursively_expand_env_vars(data):
+#     if isinstance(data, dict):
+#         return {key: recursively_expand_env_vars(value) for key, value in data.items()}
+#     elif isinstance(data, (list, tuple)):
+#         return [recursively_expand_env_vars(item) for item in data]
+#     elif isinstance(data, str):
+#         return os.path.expandvars(data)
+#     elif isinstance(data, int):
+#         return data
+#     elif isinstance(data, bool):
+#         return data
+#     return data
 
 def recursively_expand_python_vars(namespace, data=None):
     log = logging.getLogger(__name__)
@@ -49,7 +59,7 @@ def load_config(name: str, installation_directory: Path):
     log.debug(f"Found parsed config: '{ret}'")
     return ret
 
-def get_cls_from_name(name: str):
+def get_obj_from_name(name: str):
     log = logging.getLogger(__name__)
     parts = name.split(".")
     log.debug(f"Class name split on '.': '{parts}'.")

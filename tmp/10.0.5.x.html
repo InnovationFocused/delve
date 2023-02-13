@@ -1,0 +1,1321 @@
+<!DOCTYPE html><html lang="en-us">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+
+<meta name="dcterms.rights" content="© Copyright IBM Corporation 2013, 2020">
+
+<meta name="description" content="Complete the following steps to migrate from v5 to v10 when your v5 catalogs use Portal Delegated User Registries (PDUR).">
+
+<meta name="geo.country" content="ZZ">
+<script>
+    digitalData = {
+      page: {
+        pageInfo: {
+  language: "en-US",
+
+  version: "v18",
+  ibm: {
+  country: "ZZ",
+  type: "CT701"
+  
+         }
+       }
+     }
+   };
+  </script><!-- Licensed Materials - Property of IBM -->
+<!-- US Government Users Restricted Rights -->
+<!-- Use, duplication or disclosure restricted by -->
+<!-- GSA ADP Schedule Contract with IBM Corp. -->
+
+<link rel="Start" href="migration_tasks.html">
+<title>Migration steps with PDUR</title>
+</head>
+<body id="migration_pdur"><main role="main"><article role="article" aria-labelledby="migration_pdur__title__1">
+<h1 class="topictitle1" id="migration_pdur__title__1">Migration steps with PDUR</h1>
+
+
+<div class="body taskbody"><p class="shortdesc">Complete the following steps to migrate from v5 to v10 when your v5 catalogs use Portal
+Delegated User Registries (PDUR).</p>
+
+<section role="region" class="section prereq" id="migration_pdur__prereq_rx4_3jv_k3b" aria-labelledby="taskmigration_pdur__prereq_rx4_3jv_k3b"><div class="tasklabel"><h2 class="sectiontitle tasklabel" id="taskmigration_pdur__prereq_rx4_3jv_k3b">Before you begin</h2></div>
+<div class="note important"><span class="importanttitle">Important:</span> If your v5 deployment does <strong>not</strong> use Portal Delegated User Registry
+(PDUR), do not use these instructions.  See <a href="migration_steps.html" title="Complete the following steps to migrate from v5 to v10 when your v5 catalogs do not use Portal Delegated User Registries (PDUR).">Migration steps without PDUR</a>.</div>
+
+<ul id="migration_pdur__ul_fpb_zzs_4gb">
+<li>Ensure you planned your migration, obtained the migration utility, and installed a v10
+deployment, as described in <a href="migration_tasks.html" title="Plan the migration, install a new v10 deployment, and move data from v5 to v10.">Migration steps</a></li>
+
+<li>Review <a href="migration_notes.html" title="You can optimize the migration process by reviewing the migration considerations and taking any actions that apply to your deployment.">Migration considerations</a>.</li>
+
+<li>Ensure you have system administrator privileges.</li>
+
+<li>To use <code class="ph codeph">apicm</code> to convert the API definitions, you must have Node version <span class="ph">14.21.1</span>
+(or greater) installed.</li>
+
+</ul>
+
+</section>
+
+<section class="section context" role="region" aria-labelledby="taskmigration_pdur__context__1"><div class="tasklabel"><h2 class="sectiontitle tasklabel" id="taskmigration_pdur__context__1">About this task</h2></div>
+<div class="note tip"><span class="tiptitle">Tip:</span> 
+<p>To achieve a smooth and successful migration, we recommend these best practices:</p>
+
+<ul id="migration_pdur__d255e59">
+<li>Before you push your v5 data to v10, your v10 system must be up and running, with gateway
+services, provider organizations, user registries, etc, ready to receive the data.</li>
+
+<li>Plan to do several test iterations of migration. You can use the <code class="ph codeph">--dry-run</code>
+option to do iterations of the migration push, to test for any errors or warnings to address before
+the actual data push.</li>
+
+<li>Use the <code class="ph codeph">apicm &lt;<var class="keyword varname">command</var>&gt; --help</code> command to review the
+command options and their purpose. To see the list of commands you can run: <code class="ph codeph">apicm
+help</code>.</li>
+
+<li>Complete all the steps in this topic in the order listed, unless the step is marked optional and
+does not apply to your scenario. You can push provider orgs as many times as needed.</li>
+
+</ul>
+
+</div>
+
+<p>The migration of v5 catalogs that use PDUR to a v10 deployment contains all of the steps for
+migration a non-PDUR v5 deployment to a v10 deployment (as described in <a href="migration_steps.html" title="Complete the following steps to migrate from v5 to v10 when your v5 catalogs do not use Portal Delegated User Registries (PDUR).">Migration steps without PDUR</a>) plus additional steps that are needed to migrate Portal Delegated
+User Registry data.</p>
+
+<p>In IBM API Connect Version 5, when Portal Delegated User Registry (PDUR) was selected for a
+Catalog, the user management was delegated from the management server to the Developer Portal. The
+site administrator within the Portal site then performed the configuration. The management server
+recorded that the delegation had taken place, and stored a record of the users which existed in the
+catalog. However, the management service maintained no information about the configuration of the
+specific registries or how users mapped to them.</p>
+
+<p>PDUR in IBM API Connect v5 was highly configurable. A single Portal site (catalog) could be
+configured to use multiple different registry types or different registries of the same type.
+Details of this configuration, and which users map to which registry, is all stored in the
+Portal.</p>
+
+<p>However, IBM API Connect Version 10 and later supports new registries, and no longer needs the
+PDUR. Instead, functionally equivalent registries can be configured in v10 and used. To migrate the
+PDUR user registries and users from v5 to v10, we must gather configuration information from both
+the management server and the Portal node.</p>
+
+<p>PDUR supported 4 different types of user registries. The following table shows the mapping of
+these types to the v10 equivalents:</p>
+
+
+<div class="tablenoborder"><table summary="" id="migration_pdur__table_xtf_xhx_lgb" class="defaultstyle"><caption><span class="tablecap">Table 1. Mapping of Registry
+types</span></caption><colgroup><col style="width:33.44481605351171%"><col style="width:66.5551839464883%"></colgroup><thead style="text-align:left;">
+<tr>
+<th id="migration_pdur__table_xtf_xhx_lgb__entry__1">v5 PDUR Registry</th>
+
+<th id="migration_pdur__table_xtf_xhx_lgb__entry__2">v10 Equivalent Registry</th>
+
+</tr>
+
+</thead>
+<tbody>
+<tr>
+<td headers="migration_pdur__table_xtf_xhx_lgb__entry__1 ">LDAP</td>
+
+<td headers="migration_pdur__table_xtf_xhx_lgb__entry__2 ">LDAP</td>
+
+</tr>
+
+<tr>
+<td headers="migration_pdur__table_xtf_xhx_lgb__entry__1 ">OIDC</td>
+
+<td headers="migration_pdur__table_xtf_xhx_lgb__entry__2 ">OIDC</td>
+
+</tr>
+
+<tr>
+<td headers="migration_pdur__table_xtf_xhx_lgb__entry__1 ">HybridAuth</td>
+
+<td headers="migration_pdur__table_xtf_xhx_lgb__entry__2 ">OIDC</td>
+
+</tr>
+
+<tr>
+<td headers="migration_pdur__table_xtf_xhx_lgb__entry__1 ">Local User Registry (LUR)</td>
+
+<td headers="migration_pdur__table_xtf_xhx_lgb__entry__2 ">Local User Registry (LUR)</td>
+
+</tr>
+
+</tbody>
+</table>
+</div>
+
+<p>In this scenario, if you want to migrate users from an IBM API Connect V5 Developer Portal to an
+IBM API Connect v10 Developer Portal, you must export the user information that is stored in the
+Developer Portal local database. This information can then be used by the migration tooling to
+migrate the PDUR user registry. You complete this action after you have exported the v5
+configuration database for the management server.</p>
+
+</section>
+
+<div class="tasklabel"><h2 class="sectiontitle tasklabel" id="taskmigration_pdur__steps__1">Procedure</h2></div><ol class="steps"><li class="step stepexpand">
+<span class="cmd">Log in to the command line interface of the v5 appliance. Use the following command to create a
+tar.gz export of the v5 configuration database and place it on an <span class="keyword cmdname">sftp</span>
+server:</span> 
+<div class="itemgroup info">
+<pre class="codeblock"><code>config dbextract sftp &lt;host_hame&gt; user &lt;user_name&gt; file &lt;path/name&gt;
+</code></pre>
+<ul id="migration_pdur__d255e102">
+<li>Specify a name of your choice for the compressed file to contain the dbextract. For example,
+<code class="ph codeph">v5mgmt_data.tgz</code>.</li>
+
+<li>If you are not familiar with the v5 appliance CLI, see <a href="https://www.ibm.com/support/knowledgecenter/SSMNED_5.0.0/com.ibm.apic.overview.doc/ref_cli_about_cli.html" rel="noopener" target="_blank" title="(Opens in a new tab or window)">The Command Line Interface</a>. For information on <code class="ph codeph">config
+dbextract</code>, see <a href="https://www.ibm.com/support/knowledgecenter/SSMNED_5.0.0/com.ibm.apic.overview.doc/ref_CLI_config_commands.html" rel="noopener" target="_blank" title="(Opens in a new tab or window)">Configuration commands</a>.</li>
+
+</ul>
+
+</div>
+</li>
+<li class="step stepexpand"><span class="cmd">Log in to Developer Portal CLI to export Portal Delegated User Registry user information
+for all of the sites on a Developer Portal server. Use the following command to create a
+<code class="ph codeph">*.tgz</code> file:</span> <div class="itemgroup info">
+<pre class="codeblock"><code>pdur_user_export</code></pre>
+<p>The status of the export is displayed. For example:</p>
+
+<pre class="codeblock"><code>admin@apimxxx123:~$ pdur_user_export
+portal123.company.com/api-provider/production: Exporting pdur users
+portal123.company.com/api-provider/preprod: Exporting pdur users
+portal123.company.com/api-provider/uat: Exporting pdur users
+portal123.company.com/api-provider/development: Skipping as not a pdur enabled site
+portal123.company.com/api-provider/sandbox: Skipping as not a pdur enabled site
+~/pdurexport ~
+5c20b903e4b0485cbbd81775.5c20bf43e4b0485cbbd81795.json
+5c20b903e4b0485cbbd81775.5c2cddbae4b0485cbbd818a0.json
+5c20b903e4b0485cbbd81775.5c335211e4b0485cbbd8196e.json
+~
+Output can be found in /home/admin/pdurexport.tgz</code></pre>
+<p>Results:</p>
+
+<ul id="migration_pdur__ul_nbj_nzh_l3b">
+<li>When the command completes, you can see the output <code class="ph codeph">*pdurexport.tgz</code> in
+<code class="ph codeph">/home/admin/pdurexport.tgz</code>.</li>
+
+<li>This compressed file contains all of the JSON user-mapping files for that server. Each .json
+file contains a list of all of the PDUR user information that is stored in the Developer Portal
+local database. The naming convention used for the individual user-mapping files is
+<code class="ph codeph">&lt;provider_org_id&gt;.&lt;catalog_id&gt;.json</code>. </li>
+
+<li>The user information for all of the user registration methods that are used in the specific
+Developer Portal are included in the same file. For example, local user registry, LDAP user
+registry, third-party authentication, OpenID Connect, and any custom user registration method.</li>
+
+<li>If a site doesn't contain any PDUR data, that site is skipped. The example output shows that
+there was one provider organization on the server, and that organization had five Developer Portal
+sites, three of which contained PDUR user information. The PDUR user information for all of the
+sites on the server is exported into a <code class="ph codeph">pdurexport.tgz</code> file. </li>
+
+</ul>
+
+</div></li>
+<li class="step stepexpand">Optional: <span class="cmd">Setup a temporary SMTP server.</span> <div class="itemgroup info">
+<p>During migration, if subscription approval is needed to enable an application to subscribe to a
+plan, notifications are sent to all users, within the organization, who have subscription approval
+permission. In some cases, this results in a large number of emails. To avoid the sending of these
+emails, set up a temporary email server prior to running the migration, and use it to collect all
+notifications rather than sending them to users' email accounts.</p>
+ If subscription approvals are
+not needed during your migration, you can skip this step. </div></li>
+<li class="step stepexpand">Optional: <span class="cmd">If necessary, set up a temporary LDAP server.
+This can be needed if you are temporarily behind a firewall.</span> <ol type="a" class="ol substeps" id="migration_pdur__d255e137">
+<li class="li substep substepexpand"><span class="cmd">Install a server:</span> <div class="itemgroup info">
+<pre class="codeblock"><code>git clone https://github.com/veo-labs/ldap-server-mock</code></pre>
+<pre class="codeblock"><code>npm install</code></pre>
+</div></li>
+
+<li class="li substep substepexpand"><span class="cmd">Creating the configuration files:</span> <div class="itemgroup info">
+<ul id="migration_pdur__d255e156">
+<li><code class="ph codeph">ldap-server-mock-conf.json</code><pre class="codeblock"><code>{
+  "port": 3004,
+  "userLoginAttribute": "cn",
+  "searchBase": "dc=test",
+  "searchFilter": "(&amp;(objectclass=person)(cn={{username}}))"
+}</code></pre></li>
+
+<li><code class="ph codeph">users.json</code><pre class="codeblock"><code>[
+  {
+    "dn": "cn=user,dc=test",
+    "cn": "user-login"
+  }
+]</code></pre></li>
+
+</ul>
+
+</div></li>
+
+<li class="li substep substepexpand"><span class="cmd">Run the LDAP server:</span> <div class="itemgroup info">
+<pre class="codeblock"><code>node server.js --conf=./ldap-server-mock-conf.json --database=./users.json</code></pre>
+</div></li>
+
+<li class="li substep substepexpand"><span class="cmd">Modifying a current LDAP provider.</span> <div class="itemgroup info">
+<p>The following file is a dummy user registry file that maps to a read-only test server. The fields
+in bold font (<strong><code class="ph codeph">admin_dn</code></strong> and <strong><code class="ph codeph">endpoint</code></strong>) have been
+changed to fit the dummy server configuration. Change these on all user registries that need to be
+fixed.</p>
+
+<pre class="codeblock"><code>api_version: 2.0.0
+configuration:
+  <strong>admin_dn: cn=user,dc=test </strong>
+  admin_password: xxxx
+  authenticated_bind: "true"
+  authentication_method: search_dn
+  bind_prefix: ""
+  bind_suffix: ""
+  protocol_version: "3"
+  search_dn_base: ""
+  search_dn_filter_prefix: (examplelegacyuid=
+  search_dn_filter_suffix: )
+  search_dn_scope: sub
+endpoint:
+  <strong>endpoint: ldap://172.20.20.11:3004</strong>
+  tls_client_profile_url: idurl://..\..\..\..\admin-org\tls-client-profiles\tls-profile-for-ldap-1.0.0.yml
+integration_url: file://..\..\..\..\integrations\user_registry\ldap.yml
+metadata:
+  v5_id: xxxxxx40cf2fc09a9ba0d6c
+  v5_scope: '["api"]'
+  v5_type: ldap
+name: xxxxxxxxxxxxxx
+title: xxxxxxxxxxxxxxxxxxxxxx
+type: user_registry</code></pre>
+</div></li>
+
+</ol>
+</li>
+<li class="step stepexpand"><span class="cmd">Unpack both the v5 management data backup and the PDUR tar file. </span> <div class="itemgroup info">
+<div class="note important"><span class="importanttitle">Important:</span>  Migration on Windows 10<p>Windows has path length limits
+that can interfere with large extracts. It is recommended that you keep the initial path for
+migration on Windows as short as possible. The AMU must be run in a command window with
+administrative privileges on Windows. Running from a Linux VM on your Windows system may be a better
+option for doing migration.</p>
+</div>
+
+<ol type="a" id="migration_pdur__ol_c5r_zhf_r3b">
+<li>Copy the v5 extract tar file (<code class="ph codeph">&lt;v5mgmt_data&gt;.tgz</code>) and the PDUR extract file
+(<code class="ph codeph">pdurexport.tgz</code>) from the sftp server to the location where you have v10 migration
+utility installed. </li>
+
+<li>Run <code class="ph codeph">apicm archive:unpack</code> command from the directory where you downloaded the v5
+extract file.<p>When you invoke <code class="ph codeph">apicm</code> for the first time, you are prompted to
+accept the license. Accept the license to continue.</p>
+ You can optionally limit the unpack to only
+specific provider orgs. See <a href="#migration_pdur__table_unpack_pdur">Table 2</a>.</li>
+
+</ol>
+
+<pre class="codeblock"><code>./apicm archive:unpack &lt;<var class="keyword varname">v5_extract_file</var>&gt;.tgz <code class="ph codeph">pdurexport.tgz</code>
+
+</code></pre>
+
+<div class="tablenoborder"><table summary="" id="migration_pdur__table_unpack_pdur" class="defaultstyle"><caption><span class="tablecap">Table 2. <code class="ph codeph">apicm archive:unpack</code> command
+options</span></caption><colgroup><col style="width:28.735632183908045%"><col style="width:71.26436781609196%"></colgroup><thead style="text-align:left;">
+<tr>
+<th id="migration_pdur__table_unpack_pdur__entry__1">Parameters</th>
+
+<th id="migration_pdur__table_unpack_pdur__entry__2">Description</th>
+
+</tr>
+
+</thead>
+<tbody>
+<tr>
+<td headers="migration_pdur__table_unpack_pdur__entry__1 "><code class="ph codeph"><var class="keyword varname">&lt;v5_extract_file&gt;</var></code></td>
+
+<td headers="migration_pdur__table_unpack_pdur__entry__2 ">Can be compressed file (.tgz, tar.gz) or uncompressed file (.tar). Use any file name of your
+choosing. Example:<pre class="codeblock"><code>v5_DBextract_data.tgz
+</code></pre></td>
+
+</tr>
+
+<tr>
+<td headers="migration_pdur__table_unpack_pdur__entry__1 "><code class="ph codeph">pdurexport.tgz</code></td>
+
+<td headers="migration_pdur__table_unpack_pdur__entry__2 ">The Portal Delegated User Registry export file generated by the
+<code class="ph codeph">pdur_user_export</code> utility. Example:<pre class="codeblock"><code>pdurexport.tgz</code></pre>
+</td>
+
+</tr>
+
+<tr>
+<td headers="migration_pdur__table_unpack_pdur__entry__1 "><code class="ph codeph">--provider-orgs</code></td>
+
+<td headers="migration_pdur__table_unpack_pdur__entry__2 ">One or more provider orgs to unpack. This flag is optional. Use it when you want to unpack
+only specific provider orgs rather than the entire archive.
+Example:<pre class="codeblock"><code>./apicm archive:unpack v5_DBextract_data.tgz pdurexport.tgz --provider-orgs=&lt;pOrg1_name&gt;</code></pre><p>Use
+a comma-separated list to specify multiple provider
+orgs:</p>
+<pre class="codeblock"><code>./apicm archive:unpack v5_archive_data.tgz pdurexport.tgz
+ --provider-orgs=&lt;pOrg1_name&gt;,&lt;pOrg2_name&gt;,&lt;pOrg3_name&gt;</code></pre></td>
+
+</tr>
+
+</tbody>
+</table>
+</div>
+
+<div class="note"><span class="notetitle">Note:</span> 
+<ul id="migration_pdur__ul_bnw_qc3_l3b">
+<li>You can avoid the license prompt by adding <code class="ph codeph">--accept-license</code> to the
+command line.</li>
+
+<li id="migration_pdur__unpack_char">The unpack command ensures that catalog names and API properties contain only
+valid characters. Any invalid characters are mapped to '-'. See <a href="migration_notes.html#migration_notes__parity">Parity between v5 and v10</a>. </li>
+
+<li id="migration_pdur__unpack_api">The unpack command issues warning messages for APIs and Products that fail
+validation against the OpenAPI specification. See the limitations section in <a href="migration_notes.html#migration_notes" title="You can optimize the migration process by reviewing the migration considerations and taking any actions that apply to your deployment.">Migration considerations</a>. </li>
+
+<li id="migration_pdur__unpack_trbl">For troubleshooting tips, see <a href="migration_troubleshooting.html" title="If you run migration and observe error messages in your log output, you can take troubleshooting steps, and run the migration again.">Migration troubleshooting</a></li>
+
+<li>The unpack command might return error messages related to PDUR, such
+as:<pre class="codeblock"><code>ERRO[3414] PDUR backup data for IDP PortalDelegatedIdentityProvider-123b81fbe4b06de411580e2e 
+(123b81fbe4b06de411580e2f) not provided: not found 
+ERRO[3414] PDUR backup data for IDP PortalDelegatedIdentityProvider-123b820de4b06de411580e32 
+(123b820ee4b06de411580e33) not provided: not found </code></pre><p>The
+error means that when the migration utility unpacked <code class="ph codeph">pdurexport.tgz</code>, it could not
+find all the specified Portal user registries. To resolve the errors, re-run
+<code class="ph codeph">pdur_user_export</code> and re-run the unpack..</p>
+</li>
+
+</ul>
+
+</div>
+
+<p>When the command completes, the data is unpacked to the <code class="ph codeph">/cloud</code> directory. The
+<code class="ph codeph">/cloud</code> directory is located in the same directory as <code class="ph codeph">apicm</code>, and
+populated with yaml files representing the configuration objects in the export. The unpack processes
+produce output in the format required for v10 configuration.</p>
+
+<div class="note"><span class="notetitle">Note:</span> The unpack directory must be named <code class="ph codeph">/cloud</code>. Do not rename the
+directory.</div>
+
+<p>Example output in <code class="ph codeph">/cloud </code>for provider-org:</p>
+
+<pre class="codeblock"><code>└── provider-orgs
+    └── pOrg1
+        ├── catalogs
+            ├── catalog1
+            │   ├── ...
+        └── user-registries
+            ├── pdur-ldap-5c38c102e4b0485cbbd81a84
+            │   ├── mapping.yml
+            │   ├── user-registry.yml
+            │   └── users
+            │       ├── gauss.yml
+            │       └── riemann.yml
+            ├── git-hub-5c38c102e4b0485cbbd81a84-bbfe
+            │   ├── user-registry.yml
+            │   └── users
+            │       └── apictestgithub-apictestgithub-c646.yml
+            ├── google-5c38c102e4b0485cbbd81a84
+            │   ├── user-registry.yml
+            │   └── users
+            │       └── demo-account-7a25.yml
+            ├── lur-5c38c102e4b0485cbbd81a84
+            │   ├── user-registry.yml
+            │   └── users
+            │       └── lur-user-1.yml
+            ├── portal-delegated-identity-provider-5c20b903e4b0485cbbd81781-7293
+            │   └── user-registry.yml
+            ├── portal-delegated-identity-provider-5c20bf43e4b0485cbbd81795-954
+            │   ├── user-registry.yml
+            │   └── users
+            │       ├── anotheruser.yml
+            │       ├── onemore.yml
+            │       └── pduruser.yml
+            ├── portal-delegated-identity-provider-5c2cddbae4b0485cbbd818a0-986d
+            │   ├── user-registry.yml
+            │   └── users
+            │       ├── einstein.yml
+            │       ├── euclid.yml
+            │       ├── euler.yml
+            │       ├── gauss.yml
+            │       └── riemann.yml
+            ├── portal-delegated-identity-provider-5c335211e4b0485cbbd8196e-833b
+            │   ├── user-registry.yml
+            │   └── users
+            │       ├── demo-account-7a25.yml
+            │       └── demo-demo-e666.yml
+            ├── portal-delegated-identity-provider-5c347868e4b0485cbbd819b8-1137
+            │   ├── user-registry.yml
+            │   └── users
+            │       └── demo-account-7a25.yml
+            ├── portal-delegated-identity-provider-5c3622e9e4b0485cbbd81a11-9f8e
+            │   └── user-registry.yml
+            └── sandbox
+                └── user-registry.yml
+
+</code></pre>
+</div></li>
+<li class="step stepexpand" id="migration_pdur__manual_cfg"><span class="cmd">If the v5 Developer Portal used LDAP, HybridAuth, or OIDC (such as social
+login through Google, GitHub, or Slack) user registries, you must manually configure them in v10
+before using <code class="ph codeph">apicm archive:push</code> to migrate PDUR.</span> <div class="itemgroup info">
+<p>See the following instructions for your registry type:</p>
+
+</div><ul class="ul choices" id="migration_pdur__choices_cd5_g3c_l3b">
+<li class="li choice">LDAP<ol type="a">
+<li>Manually configure LDAP<p>The user registries which are required in the target v10 system are
+described in the <code class="ph codeph">user-registry.yml</code> file. Where possible the configuration for the
+v10 registries is complete in these files. However, for LDAP the configuration of the registry is
+not possible due to differences in the way the v5 Portal (Drupal) and v10 API Manager
+(<code class="ph codeph">apim</code>) specify user registry configuration. </p>
+<p>For LDAP with v10, create a user
+registry manually, using the same LDAP server and configuration as used with v5. Where it is
+possible, the v5 configuration is provided as helpful information in the
+<code class="ph codeph">metadata.v5_config</code> property. To view the v10 configuration instructions, see <a href="../com.ibm.apic.cmc.doc/task_cmc_userregistries_LDAP_cfg.html">Configuring an
+LDAP user registry</a>.</p>
+<p>For example: An <code class="ph codeph">ldap.tar.gz</code> file, when unpacked,
+creates the following directory hierarchy, for an LDAP directory
+<code class="ph codeph">example</code>:</p>
+<pre class="codeblock"><code>── user-registries
+    └── example-5c38556de4b0c5f69db90ee0
+        ├── user-registry.yml
+        └── users
+            ├── testuser1.yml
+            └── testuser2.yml</code></pre><p>You
+can create an LDAP user registry for the PDUR by either modifying <code class="ph codeph">user-registry.yml</code>
+or by creating the registry in the UI:</p>
+<ul id="migration_pdur__ul_rwd_t4c_2hb">
+<li>Modify the <code class="ph codeph">user-registries/example-5c38556de4b0c5f69db90ee0/user-registry.yml</code>
+file directly and add the required LDAP fields based on the extracted info provided in the metadata.
+Remove the metadata after you are done.<p>The modification of <code class="ph codeph">user-registry.yml</code> is
+preferred over using the UI. This method enables any APIs that depend on the user registry to be
+satisfied when the migration command <code class="ph codeph">apicm archive:push</code> is run in Step <a href="#migration_pdur__push">10</a>.</p>
+</li>
+
+<li>Create the registry in the UI.<p>The creation of the registry in the UI requires more manual
+setup of the organization and catalog. In addition, you must provide a mapping file to map from the
+<code class="ph codeph">example-5c38556de4b0c5f69db90ee0</code> to the ID of the registry that was created
+manually.</p>
+</li>
+
+</ul>
+</li>
+
+<li>Create a mapping file entry for the LDAP user registry.<p>In the <code class="ph codeph">/cloud</code>
+directory, go to
+<code class="ph codeph">provider-org/&lt;provider-org&gt;/user-registry/&lt;PDUR_LDAP_User_registry&gt;</code> and
+create a mapping file to tell migration utility the name of the migration endpoint for the LDAP user
+registry used with v5
+PDUR:</p>
+<pre class="codeblock"><code>user-registry:
+  name: &lt;pdur-ldap-v10-name&gt;
+</code></pre><p>To determine which
+name to use for the v10 LDAP registry, go to the management user interface, click on
+<code class="ph codeph">Resources -&gt; User Registries</code> then use <code class="ph codeph">Name</code> not
+<code class="ph codeph">Title</code>.</p>
+<p>For more information on how to create mapping files, see <a href="migration_mapping.html" title="You can use mapping files to map the name of a v5 object to a corresponding v10 object that has a different name.">Migration mapping files</a>.</p>
+</li>
+
+</ol>
+</li>
+
+<li class="li choice">
+<p> OIDC</p>
+
+<ol type="a">
+<li><span class="ph">Manually configure OIDC</span><ul id="migration_pdur__ul_k1p_gc1_p3b">
+<li>Note that v10 supports OAuth 2.0 but does not support OAuth 1.0. Deployments, such as Twitter,
+which use Oauth 1.0 with APIC version 5, can not use OAuth 1.0 when migrating to v10. </li>
+
+<li>Automatic migration is not supported for the OIDC user registries which you use in your v5
+Portal. Thus if you are using OIDC OAuth 2.0, e.g., Google, GitHub, or Slack, please complete the
+following manual steps.</li>
+
+<li>The OIDC data from the Portal Delegated User registry does not contain the
+<code class="ph codeph">client_id</code> and <code class="ph codeph">client_secret</code> that are needed to migrate a user
+registry automatically. You must obtain the data and update the user registry manually if you are
+using <code class="ph codeph">client_id</code> and <code class="ph codeph">client_secret</code>.</li>
+
+</ul>
+<p>On the Version 10 system:</p>
+<ol type="i" id="migration_pdur__ol_wtk_spr_jhb">
+<li>Edit <code class="ph codeph">user-registry.yml</code>. For example, for
+GitHub:<p><code class="ph codeph">cloud/provider-orgs/test-user1-org1/user-registries/git-hub-5c5xyz6ee4b0c5f69db94xxxx-a339/user-registry.yml</code></p>
+<pre class="codeblock"><code>api_version: 2.0.0
+configuration:
+  client_id: ""
+  client_secret: ""
+  authorization_endpoint: https://github.com/login/oauth/authorize
+  provider_type: github
+  token_endpoint:
+    endpoint: https://github.com/login/oauth/access_token
+integration_url: file://../../../../integrations/user_registry/oidc.yml
+metadata:
+  v5_id: 5c5xyz6ee4b0c5f69db94xxxx
+name: git-hub-5c5xyz6ee4b0c5f69db94xxxx-a339
+registry_type: oidc
+title: GitHub
+type: user_registry
+</code></pre></li>
+
+<li>Insert the values for <code class="ph codeph">client_id</code> and <code class="ph codeph">client_secret</code>. Once the
+client id and client secrets have been updated in the <code class="ph codeph">user-registry.yml</code> file just
+described, the <code class="ph codeph">apicm archive:push</code> can be successfully executed. <p>Upon creation
+and configuration of the Developer Portal, you can log in by using, as in this example, an account
+such as a GitHub account.</p>
+<p>To verify that the manual configuration succeeded, view the log file
+for entries for the users after you run <code class="ph codeph">apim archive:push</code> in Step <a href="#migration_pdur__push">10</a>.</p>
+<ul id="migration_pdur__ul_c14_qf3_l3b">
+<li>Example success
+message:<pre class="codeblock"><code>INFO[0012] User registry git-hub-5c5xyz6ee4b0c5f69db94xxxx-a339 created 
+INFO[0013] User test-user1-4d48 created</code></pre></li>
+
+<li>Example error
+message:<pre class="codeblock"><code>ERRO[0010] unable to create User registry git-hub-5c5xyz6ee4b0c5f69db94xxxx-a339 
+ERRO[0010] git-hub-5c5xyz6ee4b0c5f69db94xxxx-a339: The properties client_id, client_secret are required. </code></pre></li>
+
+</ul>
+</li>
+
+</ol>
+</li>
+
+<li>Create a mapping file entry for the OIDC user registry.<p>In the <code class="ph codeph">/cloud</code>
+directory, go to
+<code class="ph codeph">provider-org/&lt;provider-org&gt;/user-registry/&lt;PDUR_OIDC_User_registry&gt;</code> and
+create a mapping file to tell migration utility the name of the migration endpoint for the OIDC user
+registry used with v5
+PDUR:</p>
+<pre class="codeblock"><code>user-registry:
+  name: &lt;pdur-OIDC-v10-name&gt;
+</code></pre><p>For more
+information on how to create mapping files, see <a href="migration_mapping.html" title="You can use mapping files to map the name of a v5 object to a corresponding v10 object that has a different name.">Migration mapping files</a>.</p>
+</li>
+
+</ol>
+
+</li>
+
+</ul>
+</li>
+<li class="step stepexpand">Optional: 
+<span class="cmd">Remove unneeded configuration objects.</span> 
+<div class="itemgroup info">
+<p>Inspect the set of configuration objects and their attributes, and remove the ones that are not
+needed. In many cases, some of the configuration objects present in the v5 system are not needed in
+the new v10 environment. For example, there is no value in preserving inactive users, obsolete apps,
+obsolete consumer organizations, and so on.</p>
+
+<p>When deleting objects, make sure that you do not delete objects that have other dependent
+objects, such as products with subscriptions on them or users that are active. If you delete a
+consumer organization make sure you also delete all apps and subscriptions associated with that
+consumer org. Be aware of any groups that include these consumer orgs or visibility settings that
+include the consumer orgs.</p>
+
+</div>
+</li>
+<li class="step stepexpand">
+<span class="cmd">Map v5 object names to v10 object names. </span> 
+<div class="itemgroup info">
+<p>Most deployments adjust the names or quantities of gateway services, provider organizations, and
+user registries when setting up a new environment for v10. Be sure to specify any changed v10
+destinations for the v5 data in a migration mapping file so that the migration utility can
+automatically move the data. </p>
+
+<p>Complete the following, as needed. You can skip the steps for any objects that are unchanged from
+v5 to v10. </p>
+
+<ol type="a" id="migration_pdur__d255e427">
+<li><a href="migration_mapping.html#migration_mapping__what_is_mapping">What is a mapping file?</a></li>
+
+<li><a href="migration_mapping.html#migration_mapping__gateway">Mapping a gateway service</a></li>
+
+<li><a href="migration_mapping.html#migration_mapping__provider_org">Mapping a provider organization</a></li>
+
+</ol>
+
+</div></li>
+<li class="step stepexpand">Optional: <span class="cmd">If your v10 deployment uses a <strong>DataPower API
+Gateway</strong>, convert the v5 API definitions to v10 DataPower® API Gateway.</span> <div class="itemgroup info">
+<p>To convert API definitions using the default migration configuration, use the following
+syntax.</p>
+
+<pre class="codeblock"><code>./apicm archive:port-to-apigw &lt;<var class="keyword varname">path</var>&gt;</code></pre>
+<div class="note important"><span class="importanttitle">Important:</span> Ensure that the DataPower Gateway version that you are using with your API
+Connect v10 deployment is compatible with the version of the migration utility that you are using.
+For details, see the version compatibility information in <a href="../com.ibm.apic.porting.doc/porting_apigw.html#porting_apigw__compatibility">Configuring and managing your server environment</a>.</div>
+
+<div class="note important"><span class="importanttitle">Important:</span> If you are running the migration utility in Windows, Administrator privileges
+are required to complete this step.</div>
+
+
+<div class="tablenoborder"><table summary="" id="migration_pdur__d255e466" class="defaultstyle"><caption><span class="tablecap">Table 3. Parameter for archive:port-to-apigw</span></caption><colgroup><col style="width:26.525198938992045%"><col style="width:73.47480106100795%"></colgroup><thead style="text-align:left;">
+<tr>
+<th id="migration_pdur__d255e466__entry__1">Parameter</th>
+
+<th id="migration_pdur__d255e466__entry__2">Description</th>
+
+</tr>
+
+</thead>
+<tbody>
+<tr>
+<td headers="migration_pdur__d255e466__entry__1 "><code class="ph codeph">&lt;<var class="keyword varname">path</var>&gt;</code></td>
+
+<td headers="migration_pdur__d255e466__entry__2 ">Specify the unpacked <code class="ph codeph">cloud</code> directory as
+input:<pre class="codeblock"><code>./apicm archive:port-to-apigw /cloud</code></pre><p>By specifying
+<code class="ph codeph">/cloud</code>, <code class="ph codeph">apicm</code> ports all artifacts within the directory, including
+APIs, Products, OAuth providers, custom policies, subscriptions and so on. Running a subsequent
+<code class="ph codeph">archive:push</code> pushes all the artifacts to API Gateway.</p>
+<p>Running
+<code class="ph codeph">archive:port-to-apigw</code> on any subdirectory within the unpacked
+<code class="ph codeph">/cloud</code> directory could leave the directory in an inconsistent state, and cause the
+subsequent <code class="ph codeph">archive:push</code> of artifacts to API Gateway to fail. Custom policies and
+OAuth providers are not migrated if a directory other than <code class="ph codeph">/cloud</code> is specified.
+</p>
+<div class="note"><span class="notetitle">Note:</span> However, if you decide to rewrite one API at a time, to migrate them to API Gateway, you
+can use:<pre class="codeblock"><code>./apicm archive:port-to-apigw &lt;<var class="keyword varname">path</var>&gt;</code></pre> where
+<code class="ph codeph">&lt;<var class="keyword varname">path</var>&gt;</code> is a single API file, or a directory that contains
+only APIs or Products. <p>In this case, you cannot use <code class="ph codeph">archive:push</code> to push
+artifacts to API Gateway. All the ported APIs and Products must be pushed (or imported) into API
+Manager by either the toolkit or UI. </p>
+</div>
+</td>
+
+</tr>
+
+</tbody>
+</table>
+</div>
+
+<p>Usage notes:</p>
+
+<ul>
+<li>The conversion produces a draft output YAML file. Review the entire draft output YAML file for
+conformance, performance, and errors. Review the log files for messages about any manual actions
+that might be needed. For more information, see <a href="../com.ibm.apic.porting.doc/porting_review.html">Reviewing APIs converted to
+DataPower API Gateway</a>.</li>
+
+<li>By default, all changes that the migration utility makes when rewriting APIs are logged as
+comments within the API YAML file. You can use the <code class="ph codeph">enable-api-logging</code> parameter to
+disable logging of these
+changes.<pre class="codeblock"><code>./apicm archive:port-to-apigw &lt;folder&gt; --enable-api-logging=false</code></pre></li>
+
+<li>You can also specify migration configuration parameters using either a YAML configuration file
+or from the command line, but not both. For information about configuration options and DataPower
+requirements for certain configuration parameters, see <a href="migration_configuration_options.html" title="If you are converting APIs to DataPower API Gateway, you can accept the default migration configuration or specify configuration parameters.">Configuring migration options for DataPower API Gateway</a>.</li>
+
+<li>Multiple runs of <code class="ph codeph">./apicm archive:port-to-apigw</code> on the same
+<code class="ph codeph">/cloud</code> folder will skip artifacts that have already been converted to <span class="ph" translate="no">DataPower® API
+Gateway</span>.</li>
+
+<li>If your v10 deployment uses DataPower MultiProtocol Gateway (v5-compatible) you do not need to
+convert the API definitions.</li>
+
+</ul>
+
+</div></li>
+<li class="step stepexpand" id="migration_pdur__push"><span class="cmd">Use <code class="ph codeph">apicm</code> commands to push the Cloud Manager admin
+organization data onto your v10 Management Server.</span> <div class="itemgroup info">
+<ol type="a" id="migration_pdur__d255e602">
+<li>Log in to the Cloud Manager on the destination v10 Management Server as an Owner of the admin
+organization:<div class="note important"><span class="importanttitle">Important:</span> You must be logged in as an Owner of the admin organization to
+be able to migrate Cloud Manager admin organization data.</div>
+<ul>
+<li>Syntax:<pre class="codeblock"><code>./apicm login --server <code class="ph codeph">&lt;<var class="keyword varname">cloud_manager_endpoint</var>&gt;</code> --realm admin/<var class="keyword varname">identity_provider</var> --username admin --password <var class="keyword varname">admin_password</var> 
+ </code></pre></li>
+
+<li>Example on API Connect v10 standalone
+<pre class="codeblock"><code>./apicm login --server cloud-admin-ui.mgmt.dev.apic10-stack.example.test --realm admin/default-idp-1 --username admin --password 'myadminpassword'</code></pre></li>
+
+<li>Example on Cloud Pak for
+Integration<pre class="codeblock"><code>./apicm login --server cpd-e2e.apps.test1.cp.example.com/integration/apis/e2e/prod --realm admin/default-idp-1 --username admin --password ‘XXXXXXXXXXXX’ </code></pre></li>
+
+</ul>
+<p>The values to supply for the login parameters depend on whether your management server is
+deployed on API Connect v10 standalone or as part of Cloud Pak for Integration. See <a href="#migration_pdur__d255e645">Table 4</a> to review how to obtain each parameter.
+</p>
+<div class="note"><span class="notetitle">Note:</span> If you want to login using an OIDC user registry, see <a href="migration_steps_login_oidc.html" title="Logging in with an OIDC registry involves several steps, in which you obtain a temporary token and pass it to the toolkit to ensure it can communicate securely with the management server.">Logging in to a management server with an OIDC registry</a>.</div>
+
+<div class="tablenoborder"><table summary="" id="migration_pdur__d255e645" class="defaultstyle"><caption><span class="tablecap">Table 4. <code class="ph codeph">apicm login</code> command parameters</span></caption><colgroup><col style="width:27.548209366391184%"><col style="width:72.45179063360881%"></colgroup><thead style="text-align:left;">
+<tr>
+<th id="migration_pdur__d255e645__entry__1">Parameters</th>
+
+<th id="migration_pdur__d255e645__entry__2">Description</th>
+
+</tr>
+
+</thead>
+<tbody>
+<tr>
+<td headers="migration_pdur__d255e645__entry__1 "><code class="ph codeph">--server
+<code class="ph codeph">&lt;<var class="keyword varname">cloud_manager_endpoint</var>&gt;</code></code></td>
+
+<td headers="migration_pdur__d255e645__entry__2 ">The endpoint on the management server for communication with the Cloud Manager user interface.<dl>
+
+<dt class="dlterm">v10 standalone</dt>
+
+<dd class="dlentry">Example:<pre class="codeblock"><code>cloud-admin-ui.mgmt.dev.apic10-stack.example.test</code></pre><p> The endpoint
+was specified when the management subsystem was installed. View the <code class="ph codeph">apiconnect_api</code>
+definition in the <code class="ph codeph">apiconnect-up.yml</code> file in the API Connect v10 installation
+project directory that you created for initial deployment of v10. Examples:</p>
+<ul>
+<li>VMware: see the <code class="ph codeph">cloud-admin-ui</code> endpoint in <a href="capic_deploy_overview_vm.html" title="When deploying API Connect, you will create one or more endpoints for the subsystems and then configure certificates or mutual TLS for most endpoints.">Deployment overview for endpoints and certificates</a>.</li>
+
+<li>Kubernetes: see the <code class="ph codeph">admin</code> endpoint in <a href="capic_deploy_overview.html" title="When deploying API Connect, you will create one or more endpoints for the subsystems and then configure certificates or mutual TLS for most endpoints.">Deployment overview for endpoints and certificates</a>.</li>
+
+</ul>
+</dd>
+
+
+
+<dt class="dlterm">Cloud Pak for Integration</dt>
+
+<dd class="dlentry">Syntax:<pre class="codeblock"><code><var class="keyword varname">&lt;cpd-APIC_namespace.your-company.domain.com&gt;</var>/integration/apis/<var class="keyword varname">&lt;APIC_namespace&gt;</var>/<var class="keyword varname">&lt;APIC_instance&gt;</var></code></pre><p>Example:</p>
+<pre class="codeblock"><code>cpd-e2e.apps.test1.cp.example.com/integration/apis/e2e/prod</code></pre><p>where
+<code class="ph codeph">e2e</code> is <var class="keyword varname">&lt;APIC_namespace&gt;</var> and <code class="ph codeph">prod</code> is
+<var class="keyword varname">&lt;APIC_instance&gt;</var>.</p>
+<div class="note" id="migration_pdur__d255e756"><span class="notetitle">Note:</span> How to obtain the server
+parameter on Cloud Pak for Integration<p>Use the Platform Navigator UI to determine the parameter.
+Note that you cannot get the endpoint by using <code class="ph codeph">oc get routes</code> because Zen modifies
+the route internally.</p>
+<div class="p">
+<ol type="i">
+<li>Locate the Platform UI panel with entries for the deployment. Identify the row that has a Type
+column entry with the description <code class="ph codeph">API management administration</code></li>
+
+<li>To display the endpoint, hover over the entry in the Name column for that row. For example,
+hover over the <strong>prod</strong> entry, as shown in bold font, and the <strong>URL</strong> displays at the bottom
+of the panel. <pre class="pre screen"><code>Name                   Type
+
+<strong>prod</strong>                       API management administration
+prod                          API management
+
+
+<strong>cpd-e2e.apps.test1.cp.example.com/integration/apis/e2e/prod/admin</strong></code></pre>
+</li>
+
+<li>Remove the trailing <code class="ph codeph">/admin</code> from the endpoint, to obtain the parameter for the
+login
+command:<pre class="codeblock"><code>cpd-e2e.apps.test1.cp.example.com/integration/apis/e2e/prod</code></pre></li>
+
+</ol>
+
+</div>
+</div>
+</dd>
+
+
+</dl>
+</td>
+
+</tr>
+
+<tr>
+<td headers="migration_pdur__d255e645__entry__1 "><code class="ph codeph">--realm admin/default-idp-1</code></td>
+
+<td headers="migration_pdur__d255e645__entry__2 ">The <code class="ph codeph">apicm login</code> example shows the expected <code class="ph codeph">--realm</code>
+parameter values for a default API Connection administration organization. The default user is
+<code class="ph codeph">admin</code> and the identity provider is <code class="ph codeph">default-idp-1</code>.<div class="p">You can determine which identity provider to use in the
+<code class="ph codeph">--realm</code> parameter by entering the following command to see a list of all available
+identity providers (you do not need to be logged in to use this
+command):<pre class="codeblock"><code>apic identity-providers:list --scope admin --server <var class="keyword varname">mgmt_endpoint_url</var> --fields title,realm</code></pre>For example:<pre class="codeblock"><code>apic identity-providers:list --scope admin --server myserver.com --fields title,realm
+total_results: 2
+results:
+  - title: Cloud Manager User Registry
+    realm: admin/default-idp-1
+  - title: Corporate LDAP user registry
+    realm: admin/corporate-ldap</code></pre>
+<span class="ph">The <code class="ph codeph">title</code> value should enable you to determine which
+identity provider to use; you can then copy the corresponding <code class="ph codeph">--realm</code> parameter
+directly from the displayed <code class="ph codeph">realm</code> value.</span> For any identity providers that were
+created by your administrator after <span class="ph" translate="no">API Connect</span> was installed,
+the names will have been determined at creation time. The default Cloud Manager Local User Registry
+for login as a member of the cloud administration organization is
+<code class="ph codeph">default-idp-1</code>.</div>
+</td>
+
+</tr>
+
+<tr>
+<td headers="migration_pdur__d255e645__entry__1 "><code class="ph codeph">--username admin</code></td>
+
+<td headers="migration_pdur__d255e645__entry__2 ">Administrative user with permissions to modify API Connect admin-org. The default user is
+<code class="ph codeph">admin</code>. </td>
+
+</tr>
+
+<tr>
+<td headers="migration_pdur__d255e645__entry__1 "><code class="ph codeph">--password <var class="keyword varname">myadminpassword</var></code></td>
+
+<td headers="migration_pdur__d255e645__entry__2 ">Administrative user password.<p><strong>Cloud Pak for Integration: </strong>When you installed with the
+top-level CR for CP4I, the password was auto-generated. To obtain the password, see step <a href="tapic_install_OpenShift_online.html#tapic_install_OpenShift_online__step_endpoints">3</a> in <a href="tapic_install_OpenShift_online.html" title="Use the top-level APIConnectCluster CR to install all of the API Connect subsystems into a shared namespace on OpenShift while connected to the internet.">Installing API Connect</a>: </p>
+</td>
+
+</tr>
+
+</tbody>
+</table>
+</div>
+</li>
+
+
+<li id="migration_pdur__d255e859"> Run <code class="ph codeph">/apicm archive:push</code> to migrate data for the Cloud Manager
+administrative org (admin-org). <ul>
+<li>Syntax<pre class="codeblock"><code>./apicm archive:push  &lt;<var class="keyword varname">cloud_manager_endpoint</var>&gt; <code class="ph codeph">&lt;<var class="keyword varname">path_to_admin_org</var>&gt;</code> [optional flags]
+</code></pre></li>
+
+<li>Example for v10:
+<pre class="codeblock"><code>./apicm archive:push cloud-admin-ui.mgmt.dev.apic10-stack.example.test cloud/admin-org
+</code></pre></li>
+
+<li>Example for Cloud Pak for
+Integration:<pre class="codeblock"><code>./apicm archive:push cpd-e2e.apps.test1.cp.example.com/integration/apis/e2e/prod cloud/admin-org
+</code></pre></li>
+
+</ul>
+<p>See <a href="#migration_pdur__d255e899">Table 5</a> to review how to obtain each
+parameter. </p>
+<div class="note tip"><span class="tiptitle">Tip:</span> First run the command with the optional flag
+<code class="ph codeph">--dry-run</code> to test for errors or warnings. Review the command parameters, examples
+and guidance that follow before you run it.</div>
+
+<div class="tablenoborder"><table summary="" id="migration_pdur__d255e899" class="defaultstyle"><caption><span class="tablecap">Table 5. <code class="ph codeph">apicm
+archive:push</code> command parameters for admin org</span></caption><colgroup><col style="width:23.04147465437788%"><col style="width:76.95852534562212%"></colgroup><thead style="text-align:left;">
+<tr>
+<th id="migration_pdur__d255e899__entry__1">Parameters</th>
+
+<th id="migration_pdur__d255e899__entry__2">Description</th>
+
+</tr>
+
+</thead>
+<tbody>
+<tr>
+<td headers="migration_pdur__d255e899__entry__1 "><code class="ph codeph">&lt;<var class="keyword varname">cloud_manager_endpoint</var>&gt;</code></td>
+
+<td headers="migration_pdur__d255e899__entry__2 ">The endpoint on the management server for communication with the Cloud Manager user interface.<dl>
+
+<dt class="dlterm">v10 standalone</dt>
+
+<dd class="dlentry">Example:<pre class="codeblock"><code>cloud-admin-ui.mgmt.dev.apic10-stack.example.test</code></pre><p> The endpoint
+was specified when the management subsystem was installed. View the <code class="ph codeph">apiconnect_api</code>
+definition in the <code class="ph codeph">apiconnect-up.yml</code> file in the API Connect v10 installation
+project directory that you created for initial deployment of v10. Examples:</p>
+<ul>
+<li>VMware: see the <code class="ph codeph">cloud-admin-ui</code> endpoint in <a href="capic_deploy_overview_vm.html" title="When deploying API Connect, you will create one or more endpoints for the subsystems and then configure certificates or mutual TLS for most endpoints.">Deployment overview for endpoints and certificates</a>.</li>
+
+<li>Kubernetes: see the <code class="ph codeph">admin</code> endpoint in <a href="capic_deploy_overview.html" title="When deploying API Connect, you will create one or more endpoints for the subsystems and then configure certificates or mutual TLS for most endpoints.">Deployment overview for endpoints and certificates</a>.</li>
+
+</ul>
+</dd>
+
+
+
+<dt class="dlterm">Cloud Pak for Integration</dt>
+
+<dd class="dlentry">Syntax:<pre class="codeblock"><code><var class="keyword varname">&lt;cpd-APIC_namespace.your-company.domain.com&gt;</var>/integration/apis/<var class="keyword varname">&lt;APIC_namespace&gt;</var>/<var class="keyword varname">&lt;APIC_instance&gt;</var></code></pre><p>Example:</p>
+<pre class="codeblock"><code>cpd-e2e.apps.test1.cp.example.com/integration/apis/e2e/prod</code></pre><p>where
+<code class="ph codeph">e2e</code> is <var class="keyword varname">&lt;APIC_namespace&gt;</var> and <code class="ph codeph">prod</code> is
+<var class="keyword varname">&lt;APIC_instance&gt;</var>.</p>
+<p>See <a href="#migration_pdur__d255e756">How to obtain the server parameter for Cloud Pak for Integration</a>.</p>
+</dd>
+
+
+</dl>
+</td>
+
+</tr>
+
+<tr>
+<td headers="migration_pdur__d255e899__entry__1 "><code class="ph codeph">&lt;<var class="keyword varname">path_to_admin_org</var>&gt;</code></td>
+
+<td headers="migration_pdur__d255e899__entry__2 ">Must be <code class="ph codeph">cloud/admin-org</code>.</td>
+
+</tr>
+
+<tr>
+<td headers="migration_pdur__d255e899__entry__1 ">-<code class="ph codeph">-dry-run</code></td>
+
+<td headers="migration_pdur__d255e899__entry__2 ">Optional flag. You can test the Admin org migration output first view by using the
+<code class="ph codeph">--dry-run</code> option.
+<pre class="codeblock"><code>./apicm archive:push &lt;<var class="keyword varname">cloud_manager_endpoint</var>&gt; <code class="ph codeph">&lt;<var class="keyword varname">path_to_admin_org</var>&gt;</code> --dry-run
+</code></pre><p>This option creates a project directory similar to <code class="ph codeph">cloud</code>, titled
+<code class="ph codeph">.workdir-&lt;apim_admin_server&gt;</code> where you can view how the data will be loaded into
+your new system. The option also displays the objects that will fail due to existing already or
+missing dependencies. Use this option to view the resolved URLs for where the data will be loaded,
+without creating resources on the new system. See <a href="migration_troubleshooting.html#migration_troubleshooting__apicm_help">apicm command line help</a>.</p>
+</td>
+
+</tr>
+
+<tr>
+<td headers="migration_pdur__d255e899__entry__1 "><code class="ph codeph">--apigw-only</code></td>
+
+<td headers="migration_pdur__d255e899__entry__2 ">Optional flag. Use when migrating to a DataPower API Gateway. For example:
+<pre class="codeblock"><code>./apicm archive:push &lt;<var class="keyword varname">cloud_manager_endpoint</var>&gt; <code class="ph codeph">&lt;<var class="keyword varname">path_to_admin_org</var>&gt;</code> --apigw-only
+</code></pre></td>
+
+</tr>
+
+</tbody>
+</table>
+</div>
+<div class="note important"><span class="importanttitle">Important:</span> Usage notes:<ul id="migration_pdur__d255e1092">
+<li>Run <code class="ph codeph">/apicm archive:push</code> in the same directory where you ran <code class="ph codeph">apicm:
+archive:unpack</code>.</li>
+
+<li>If you run migration and observe error messages in your log output, you can take troubleshooting
+steps, and run the migration again. See <a href="migration_troubleshooting.html" title="If you run migration and observe error messages in your log output, you can take troubleshooting steps, and run the migration again.">Migration troubleshooting</a>.</li>
+
+<li>The <code class="ph codeph">apicm</code> login obtains a token that expires after eight hours. If the token
+expires while <code class="ph codeph">apicm archive:push</code> is running, <code class="ph codeph">apicm</code> generates
+errors due to lack of the necessary access permissions. In this case, log in again and re-run
+<code class="ph codeph">apicm archive:push</code>. The token is refreshed every time you log in. See also <a href="migration_troubleshooting.html#migration_troubleshooting__token_expire">Token expiration
+</a> in <a href="migration_troubleshooting.html" title="If you run migration and observe error messages in your log output, you can take troubleshooting steps, and run the migration again.">Migration troubleshooting</a></li>
+
+<li id="migration_pdur__d255e1128">An alternative method of viewing endpoints is to run <code class="ph codeph">kubectl get
+ingress</code> and get the values from the output. For example, see the values in <strong>bold</strong> in
+the following sample output:
+<pre class="codeblock"><code>r7c221d8a33-apic-portal-director         api.portal.dev.apic10-stack.example.test                80, 443   21h
+r7c221d8a33-apic-portal-web              portal.dev.apic10-stack.example.test                    80, 443   21h
+<strong>re314d70920-apiconnect-api               platform.mgmt.dev.apic10-stack.example.test </strong>            80, 443   22h
+re314d70920-apiconnect-apim-ui           apim.mgmt.dev.apic10-stack.example.test                 80, 443   22h
+re314d70920-apiconnect-cm-ui             cloud.mgmt.dev.apic10-stack.example.test                80, 443   22h
+<strong>re314d70920-apiconnect-consumer-api      consumer.mgmt.dev.apic10-stack.example.test </strong>            80, 443   22h
+rfe867a858b-dynamic-gateway-service      service.gw.dev.apic10-stack.example.test                80, 443   21h
+rfe867a858b-dynamic-gateway-service-gw   api.gw.dev.apic10-stack.example.test                    80, 443   21h
+rfff5043330-analytics-client             ac.dev.apic10-stack.example.test                        80, 443   21h
+rfff5043330-analytics-ingestion          ai.dev.apic10-stack.example.test   </code></pre></li>
+
+</ul>
+</div>
+</li>
+
+</ol>
+
+</div></li>
+<li class="step stepexpand"><span class="cmd">Migrate the API Manager provider organizations.</span> <div class="itemgroup info">
+<ol type="a" id="migration_pdur__d255e1153">
+<li>If you have not already done so, create the provider organizations on your API Connect v10
+deployment. </li>
+
+<li>Use <code class="ph codeph">apicm</code> to log in to the API Manager user interface as an Owner of the
+provider organization that you want to migrate.<p>If you want to login using an OIDC user registry,
+see <a href="migration_steps_login_oidc.html" title="Logging in with an OIDC registry involves several steps, in which you obtain a temporary token and pass it to the toolkit to ensure it can communicate securely with the management server.">Logging in to a management server with an OIDC registry</a>.</p>
+<div class="note important"><span class="importanttitle">Important:</span> You cannot migrate a
+provider organization while you are logged in with the Cloud Manager admin organization. You must be
+logged in as an Owner of the provider organization to be able to migrate that organization's
+data.</div>
+<ul>
+<li>Syntax:<pre class="codeblock"><code>./apicm login --server <code class="ph codeph">&lt;<var class="keyword varname">api-manager-ui-endpoint</var>&gt;</code> --realm provider/<var class="keyword varname">identity_provider</var> --username <var class="keyword varname">org_owner</var> --password <var class="keyword varname">org_password</var> 
+</code></pre></li>
+
+<li>Example for API Connect
+v10:<pre class="codeblock"><code>./apicm login --server api-manager-ui.dev.apic10-stack.example.test --realm provider/default-idp-2 --username org_owner1@example.com --password myorgpassword</code></pre></li>
+
+<li>Example for Cloud Pak for
+Integration:<pre class="codeblock"><code>./apicm login -server cpd-e2e.apps.test1.cp.example.com/integration/apis/e2e/prod --realm provider/default-idp-2 --username org_owner1@example.com --password myorgpassword
+</code></pre></li>
+
+</ul>
+
+<div class="tablenoborder"><table summary="" id="migration_pdur__d255e1201" class="defaultstyle"><caption><span class="tablecap">Table 6. <code class="ph codeph">apicm login</code> parameters for
+logging in to provider orgs on API Connect v10 standalone</span></caption><colgroup><col style="width:27.548209366391184%"><col style="width:72.45179063360881%"></colgroup><thead style="text-align:left;">
+<tr>
+<th id="migration_pdur__d255e1201__entry__1">Parameters</th>
+
+<th id="migration_pdur__d255e1201__entry__2">Description</th>
+
+</tr>
+
+</thead>
+<tbody>
+<tr>
+<td headers="migration_pdur__d255e1201__entry__1 "><code class="ph codeph">--server
+<code class="ph codeph">&lt;<var class="keyword varname">api-manager-ui-endpoint</var>&gt;</code></code></td>
+
+<td headers="migration_pdur__d255e1201__entry__2 ">API Manager URL endpoint on the management server for communication with the API Manager user
+interface. <dl>
+
+<dt class="dlterm">API Connect v10 standalone</dt>
+
+<dd class="dlentry">
+<p>For example:</p>
+
+<pre class="codeblock"><code>api-manager-ui.dev.apic10-stack.example.test</code></pre>
+<div class="p">The endpoint was specified when the management subsystem was installed. To verify your endpoint
+setting you can:<ul>
+<li>View the <code class="ph codeph">apiconnect-apim-ui</code> definition in the
+<code class="ph codeph">apiconnect-up.yml</code> file in the API Connect v10 installation project directory.</li>
+
+<li>In the Cloud Manager UI, select <span class="ph menucascade"><span class="ph uicontrol">Settings</span><abbr title="and then"> &gt; </abbr><span class="ph uicontrol">Endpoints
+</span></span> and view <strong>API Manager URL</strong>.</li>
+
+</ul>
+</div>
+
+</dd>
+
+
+
+<dt class="dlterm">Cloud Pak for Integration</dt>
+
+<dd class="dlentry">Syntax (line-break is for table formatting only; your value will not include a
+line-break):<pre class="codeblock"><code><var class="keyword varname">&lt;cpd-APIC_namespace.your-company.domain.com&gt;</var>/integration/apis
+/<var class="keyword varname">&lt;APIC_namespace&gt;</var>/<var class="keyword varname">&lt;APIC_instance&gt;</var></code></pre><p>Example:</p>
+<pre class="codeblock"><code>cpd-e2e.apps.test1.cp.example.com/integration/apis/e2e/prod</code></pre><p>where
+<code class="ph codeph">e2e</code> is &lt;<var class="keyword varname">APIC_namespace</var>&gt; and <code class="ph codeph">prod</code> is
+&lt;<var class="keyword varname">APIC_instance</var>&gt;.</p>
+<p>See <a href="#migration_pdur__d255e756">How to obtain the server parameter for Cloud Pak for Integration</a>.</p>
+</dd>
+
+
+</dl>
+</td>
+
+</tr>
+
+<tr>
+<td headers="migration_pdur__d255e1201__entry__1 "><code class="ph codeph">--realm provider/<var class="keyword varname">identity_provider</var></code></td>
+
+<td headers="migration_pdur__d255e1201__entry__2 ">The <code class="ph codeph">apicm login</code> example shows the expected <code class="ph codeph">realm</code> parameter
+values for a default API Connection provider organization. The default user is
+<code class="ph codeph">provider</code> and the identity provider is <code class="ph codeph">default-idp-2</code>.<div class="p">You can determine which identity provider to use in the
+<code class="ph codeph">--realm</code> parameter by entering the following command to see a list of all available
+identity providers (you do not need to be logged in to use this
+command):<pre class="codeblock"><code>apic identity-providers:list --scope provider --server <var class="keyword varname">mgmt_endpoint_url</var> --fields title,realm</code></pre>For example:<pre class="codeblock"><code>apic identity-providers:list --scope provider --server myserver.com --fields title,realm 
+total_results: 2
+results:
+  - title: Cloud Manager User Registry
+    realm: provider/default-idp-2
+  - title: Corporate LDAP user registry
+    realm: provider/corporate-ldap</code></pre>
+<span class="ph">The <code class="ph codeph">title</code> value should enable you to determine which identity provider to use;
+you can then copy the corresponding <code class="ph codeph">--realm</code> parameter directly from the displayed
+<code class="ph codeph">realm</code> value.</span> For any identity providers that were created by your
+administrator after <span class="ph" translate="no">API Connect</span> was installed,
+the names will have been determined at creation time. The default API Manager Local User Registry
+for login as a member of a provider organization is <code class="ph codeph">default-idp-2</code>.</div>
+</td>
+
+</tr>
+
+<tr>
+<td headers="migration_pdur__d255e1201__entry__1 "><code class="ph codeph">--username &lt;<var class="keyword varname">org_owner</var>&gt;</code></td>
+
+<td headers="migration_pdur__d255e1201__entry__2 ">A user with permissions to modify the provider organization. Typically this is the owner of
+the organization.</td>
+
+</tr>
+
+<tr>
+<td headers="migration_pdur__d255e1201__entry__1 "><code class="ph codeph">--password <var class="keyword varname">&lt;org_owner_password&gt;</var></code></td>
+
+<td headers="migration_pdur__d255e1201__entry__2 ">Organization owner password.</td>
+
+</tr>
+
+</tbody>
+</table>
+</div>
+</li>
+
+<li id="migration_pdur__d255e1377">Run <code class="ph codeph">/apicm archive:push</code> to migrate data for the Provider organization.<ul>
+<li>Syntax:<pre class="codeblock"><code>./apicm archive:push &lt;<var class="keyword varname">api-manager-ui-endpoint</var>&gt; cloud/provider-orgs/&lt;<var class="keyword varname">pOrg_name</var>&gt; [optional flags]
+</code></pre></li>
+
+<li>Example on
+v10:<pre class="codeblock"><code>./apicm archive:push api-manager-ui.mgmt.dev.apic10-stack.example.test cloud/provider-orgs/production_Org 
+  </code></pre></li>
+
+<li>Example on Cloud Pak for
+Integration<pre class="codeblock"><code>./apicm archive:push cpd-e2e.apps.test1.cp.example.com/integration/apis/e2e/prod cloud/provider-orgs/production_Org 
+  </code></pre></li>
+
+</ul>
+<p>See <a href="#migration_pdur__d255e1414">Table 7</a> to review how to obtain
+each parameter. </p>
+<div class="note tip"><span class="tiptitle">Tip:</span> First run the command with the optional flag
+<code class="ph codeph">--dry-run</code> to test for errors or warnings. </div>
+
+<div class="tablenoborder"><table summary="" id="migration_pdur__d255e1414" class="defaultstyle"><caption><span class="tablecap">Table 7. <code class="ph codeph">apicm archive:push</code> command parameters for Provider
+orgs</span></caption><colgroup><col style="width:23.04147465437788%"><col style="width:76.95852534562212%"></colgroup><thead style="text-align:left;">
+<tr>
+<th id="migration_pdur__d255e1414__entry__1">Parameters</th>
+
+<th id="migration_pdur__d255e1414__entry__2">Description</th>
+
+</tr>
+
+</thead>
+<tbody>
+<tr>
+<td headers="migration_pdur__d255e1414__entry__1 "><code class="ph codeph">&lt;<var class="keyword varname">api-manager-ui-endpoint</var>&gt;</code></td>
+
+<td headers="migration_pdur__d255e1414__entry__2 ">API Manager URL endpoint on the management server for communication with the API Manager user
+interface. <dl>
+
+<dt class="dlterm">API Connect v10 standalone</dt>
+
+<dd class="dlentry">For example:<pre class="codeblock"><code>api-manager-ui.dev.apic10-stack.example.test</code></pre><div class="p">The endpoint
+was specified when the management subsystem was installed. To verify your endpoint setting you
+can:<ul id="migration_pdur__d255e1463">
+<li>View the <code class="ph codeph">apiconnect_api</code> definition in the <code class="ph codeph">apiconnect-up.yml</code>
+file in the API Connect v10 installation project directory.</li>
+
+<li>In the Cloud Manager UI, select <span class="ph menucascade"><span class="ph uicontrol">Settings</span><abbr title="and then"> &gt; </abbr><span class="ph uicontrol">Endpoints
+</span></span> and view <strong>API Manager URL</strong>.</li>
+
+</ul>
+</div>
+</dd>
+
+
+
+<dt class="dlterm">Cloud Pak for Integration</dt>
+
+<dd class="dlentry">Syntax (line-break is for table formatting only, your value will not include a
+line-break).<pre class="codeblock"><code><var class="keyword varname">&lt;cpd-APIC_namespace.your-company.domain.com&gt;</var>/integration/apis
+/<var class="keyword varname">APIC_namespace</var>/<var class="keyword varname">&lt;APIC_instance&gt;</var></code></pre><p>Example:</p>
+<pre class="codeblock"><code>cpd-e2e.apps.test1.cp.example.com/integration/apis/e2e/prod</code></pre><p>where
+<code class="ph codeph">e2e</code> is &lt;<var class="keyword varname">APIC_namespace</var>&gt; and <code class="ph codeph">prod</code> is
+&lt;<var class="keyword varname">APIC_instance</var>&gt;.</p>
+<p>See <a href="#migration_pdur__d255e756">How to obtain the server parameter for Cloud Pak for Integration</a>.</p>
+</dd>
+
+
+</dl>
+</td>
+
+</tr>
+
+<tr>
+<td headers="migration_pdur__d255e1414__entry__1 "><code class="ph codeph">cloud/provider-orgs/&lt;pOrg_name&gt;</code></td>
+
+<td headers="migration_pdur__d255e1414__entry__2 ">The location of your Provider org within the <code class="ph codeph">/cloud</code> file hierarchy you
+created when you ran <code class="ph codeph">apicm archive:unpack</code>.
+<pre class="codeblock"><code>cloud/provider-orgs/production_Org</code></pre></td>
+
+</tr>
+
+<tr>
+<td headers="migration_pdur__d255e1414__entry__1 "><code class="ph codeph">--catalogs=&lt;name&gt;</code></td>
+
+<td headers="migration_pdur__d255e1414__entry__2 ">Optionally, you can push data for only specified Catalogs if you don't want to push the
+entire Provider organization. Use this flag to specify the name of the Catalog you want to
+push:<pre class="codeblock"><code>./apicm archive:push <var class="keyword varname">&lt;api-manager-ui-endpoint&gt;</var> cloud/provider-orgs/<var class="keyword varname">&lt;pOrg_name&gt;</var>
+ --catalogs=<var class="keyword varname">&lt;catalog_name&gt;
+</var></code></pre><div class="note"><span class="notetitle">Note:</span> Type the command on a single line.</div>
+<p>When a catalog is mapped,
+specify the mapped new catalog name. </p>
+<div class="p">To specify multiple catalogs, use a comma-separated
+list:
+<pre class="codeblock"><code>./apicm archive:push <var class="keyword varname">&lt;api-manager-ui-endpoint&gt;</var> cloud/provider-orgs/<var class="keyword varname">&lt;pOrg_name&gt;</var>
+ --catalogs=<var class="keyword varname">&lt;catalog_name1,catalog_name2,catalog_name3&gt;</var></code></pre><div class="note"><span class="notetitle">Note:</span> Type
+the command on a single line.</div>
+</div>
+</td>
+
+</tr>
+
+<tr>
+<td headers="migration_pdur__d255e1414__entry__1 ">-<code class="ph codeph">-dry-run</code></td>
+
+<td headers="migration_pdur__d255e1414__entry__2 ">You can test the Provider org migration output first view by using the
+<code class="ph codeph">--dry-run</code> option. This will create a project directory similar to
+<code class="ph codeph">cloud</code>, titled <code class="ph codeph">.workdir-&lt;apim_admin_server&gt;</code> where you can view
+how the data will be loaded into your new system. The option also displays the objects that will
+fail due to existing already or missing dependencies. Use this option to view the resolved URLs for
+where the data will be loaded, without creating resources on the new system. See <a href="migration_troubleshooting.html#migration_troubleshooting__apicm_help">apicm command line help</a>.<pre class="codeblock"><code>./apicm archive:push <var class="keyword varname">&lt;api-manager-ui-endpoint&gt;</var> cloud/provider-orgs/<var class="keyword varname">&lt;pOrg_name&gt;</var>
+ --dry-run
+</code></pre><div class="note"><span class="notetitle">Note:</span> Type the command on a single line.</div>
+</td>
+
+</tr>
+
+<tr>
+<td headers="migration_pdur__d255e1414__entry__1 "><code class="ph codeph">--no-drafts</code></td>
+
+<td headers="migration_pdur__d255e1414__entry__2 ">Do not push any Draft APIs or Products. Draft objects are objects that have not been
+published.<pre class="codeblock"><code>./apicm archive:push <var class="keyword varname">&lt;cloud_manager_endpoint&gt;</var> <var class="keyword varname">&lt;path_to_provider_org&gt;</var>
+ --no-drafts
+</code></pre><div class="note"><span class="notetitle">Note:</span> Type the command on a single line.</div>
+<p>This option can be used with or
+without <code class="ph codeph">--catalogs=a,b,c</code>.</p>
+</td>
+
+</tr>
+
+<tr>
+<td headers="migration_pdur__d255e1414__entry__1 "><code class="ph codeph">--overwrite</code></td>
+
+<td headers="migration_pdur__d255e1414__entry__2 ">When this option is used, draft products, draft APIs, published products and their APIs, and
+OAuth Providers that are already on the v10 system will be overwritten. When this option is not used
+these artifacts will be skipped.</td>
+
+</tr>
+
+</tbody>
+</table>
+</div>
+<div class="note important"><span class="importanttitle">Important:</span> Usage notes<ul id="migration_pdur__d255e1658">
+<li>Run <code class="ph codeph">/apicm archive:push</code> in the same directory where you ran <code class="ph codeph">apicm:
+archive:unpack</code>.</li>
+
+<li>If you run migration and observe error messages in your log output, you can take troubleshooting
+steps, and run the migration again. See <a href="migration_troubleshooting.html" title="If you run migration and observe error messages in your log output, you can take troubleshooting steps, and run the migration again.">Migration troubleshooting</a>.</li>
+
+<li>The <code class="ph codeph">apicm</code> login obtains a token that expires after eight hours. If the token
+expires while <code class="ph codeph">apicm archive:push</code> is running, <code class="ph codeph">apicm</code> generates
+errors due to lack of the necessary access permissions. In this case, log in again and re-run
+<code class="ph codeph">apicm archive:push</code>. The token is refreshed every time you log in. See also <a href="migration_troubleshooting.html#migration_troubleshooting__token_expire">Token expiration
+</a> in <a href="migration_troubleshooting.html" title="If you run migration and observe error messages in your log output, you can take troubleshooting steps, and run the migration again.">Migration troubleshooting</a></li>
+
+<li>An alternative method of viewing endpoints is to run <code class="ph codeph">kubectl get ingress</code> and
+get the values from the output. See <a href="#migration_pdur__d255e1128">kubectl
+example</a>. </li>
+
+</ul>
+</div>
+</li>
+
+</ol>
+
+</div></li>
+<li class="step stepexpand" id="migration_pdur__success">
+<span class="cmd">When migration finishes, complete the following steps:</span> <ol type="a" class="ol substeps" id="migration_pdur__d255e1710">
+<li class="li substep substepexpand"><span class="cmd">If a user in a Local User Registry is owner of a Consumer Organization, the user must
+reset their password.</span></li>
+
+
+<li class="li substep substepexpand"><span class="cmd">If applicable, reapply any customized configurations from your v5 deployment. See
+<a href="migration_notes.html#migration_notes__customizations">Customizations to recreate</a>. </span></li>
+
+<li class="li substep substepexpand">Optional: <span class="cmd">If necessary, switch the provider organization ownership to the
+identity that owned it in v5. </span> <div class="itemgroup info">
+<p>This step might be necessary if you created and migrated the provider organization using a
+different identity (such as administrative account) than the user identity of the v5 provider org.
+Note that the UI does not provide this function, but you can use the API
+<code class="ph codeph">/orgs/{org}/transfer-owner</code> to switch ownership.</p>
+
+</div></li>
+
+<li class="li substep substepexpand"><span class="cmd">If Stripe billing integrations were included in your migration, you must now configure
+the Stripe integrations in your <span class="ph">Developer Portal</span>
+sites; see <a href="../com.ibm.apic.devportal.doc/tapic_portal_enable_stripe_drupal8.html">Configuring Stripe in the Developer Portal </a> for detailed instructions. For more
+information about the billing feature in v10, see <a href="../com.ibm.apic.apionprem.doc/capim_product_billing.html">Monetizing your
+Products</a>.</span></li>
+
+</ol>
+
+</li>
+</ol>
+
+</div>
+
+<aside role="complementary" aria-labelledby="migration_pdur__title__1"><nav role="navigation">
+<div class="familylinks">
+<div class="parentlink"><strong>Parent topic:</strong> <a data-hd-audience="onpremise" href="migration_tasks.html" title="Plan the migration, install a new v10 deployment, and move data from v5 to v10.">Migration steps</a></div>
+</div>
+</nav></aside></article></main><script type="text/javascript"  src="/lVriiH3udn6-LbVOQoaZ6xAZW9A/OQN7pDXSXOiu/ADJc/Yg8xGH/R-Ohs"></script><link rel="stylesheet" type="text/css"  href="/_sec/cp_challenge/sec-3-9.css">
+          <script  src="/_sec/cp_challenge/sec-cpt-3-9.js" async defer></script>
+          <div id="sec-overlay" style="display:none;">
+          <div id="sec-container">
+          </div>
+        </div></body></html>

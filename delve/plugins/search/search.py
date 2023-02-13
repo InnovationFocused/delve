@@ -194,5 +194,5 @@ def search(argv, results=None):
 
             if args.page:
                 query = query.page(args.page, pagesize=args.page_size)
-            results = list(result.to_dict() for result in query)
+            results = list(result.to_dict(with_collections=True) for result in query)
     return results

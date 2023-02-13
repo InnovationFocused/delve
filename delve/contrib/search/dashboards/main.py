@@ -3,6 +3,8 @@ import sys
 from pathlib import Path
 
 import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
 
 from delve.defaults import default_installation_directory
 from delve.search import handle_search_query
@@ -45,4 +47,10 @@ if query:
         plugins_config=plugins_config,
     )
 
+    # if isinstance(df, pd.DataFrame):
+    #     st.dataframe(df)
+    # # if isinstance(df, matplotlib.axes._subplots.AxesSubplot):
+    # #     st.pyplot(df)
+    # else:
+    # fig, ax = plt.subplots()
     st.write(df)

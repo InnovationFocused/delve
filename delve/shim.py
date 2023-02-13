@@ -78,6 +78,7 @@ with st.sidebar:
     selected_dashboard = st.selectbox(
         "Select Dashboard",
         dashboards,
+        format_func=lambda d: d.split(".")[-1]
     )
 if selected_dashboard in sys.modules:
     del sys.modules[selected_dashboard]

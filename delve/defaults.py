@@ -71,13 +71,14 @@ def get_defaults(installation_directory: Path):
                 "save": "delve.plugins.search.save",
                 "search": "delve.plugins.search.search",
                 # "stats": "delve.plugins.search.stats",
-                "to-df": "delve.plugins.search.to_df",
                 # "df-plot": "delve.plugins.search.df_plot",
                 "extract-json": "delve.plugins.search.extract_json",
-                "line-chart": "delve.plugins.search.linechart",
                 "add-field": "delve.plugins.search.add_field",
                 "drop": "delve.plugins.search.drop",
                 "extracted": "delve.plugins.search.extracted",
+                "to-df": "delve.plugins.search.to_df",
+                "describe": "delve.plugins.search.df.describe.describe",
+                "line": "delve.plugins.search.df.line.line",
             },
             "input": {
                 "handler_map": {

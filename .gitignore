@@ -1,6 +1,9 @@
 # Custom
 .env310
 db.sqlite
+*.build/
+*.dist/
+*.cmd
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

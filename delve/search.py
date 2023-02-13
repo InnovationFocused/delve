@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 from inspect import isgenerator
 
-from .config import get_cls_from_name
+from .config import get_obj_from_name
 from .encoders import UUIDEncoder
 
 def handle_search_query(
@@ -22,7 +22,7 @@ def handle_search_query(
         log.debug(f"Found plugin_name: '{plugin_name}'")
         plugin_cls_name = plugins_config.get("search").get(plugin_name)
         log.debug(f"Found plugin_cls_name: '{plugin_cls_name}'")
-        plugin = get_cls_from_name(plugin_cls_name)
+        plugin = get_obj_from_name(plugin_cls_name)
         log.debug(f"Found plugin: '{plugin}'")
         results = plugin(argv[1:], results)
         log.debug(f"Found results: '{results}'")

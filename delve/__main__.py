@@ -51,6 +51,16 @@ def startapp(
         "# Put your search plugins below"
     )
 
+@cli.command()
+def config(
+    installation_directory: Path=default_installation_directory,
+):
+    installation_directory = installation_directory.resolve()
+    config_directory = installation_directory.joinpath("config")
+    for filename in config_directory.glob("*.toml"):
+        config = load_config(str(filename.name).replace(".toml", ""), installation_directory)
+        print(filename)
+        print("\t" + "\n\t".join(toml.dumps(config).splitlines()))
 
 @cli.command()
 def install(
