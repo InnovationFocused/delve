@@ -126,6 +126,8 @@ def search(argv, results=None):
     log.debug(f"Found args: '{args}'")
     if args.regex:
         regular_expressions = [re.compile(regex) for regex in args.regex]
+    else:
+        regular_expressions = []
     if results is not None:
         ret = []
         for result in results:
